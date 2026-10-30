@@ -1,0 +1,14 @@
+data/
+__pycache__/
+.venv/
+.pytest_cache/
+
+# Variáveis de ambiente. O .env.example vai pro repositório como modelo (só valores de exemplo).
+.env
+.env.*
+!.env.example
+
+# Anotações internas de desenvolvimento. O README.md vai pro repositório.
+*.md
+!README.md
+docs/

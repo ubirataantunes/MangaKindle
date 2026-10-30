@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}MangaKindle{% endblock %}</title>
+  {% block cabecalho_extra %}{% endblock %}
+  <link rel="stylesheet" href="/static/estilo.css">
+</head>
+<body>
+  {% if is_logged_in(request) %}
+  <header>
+    <a class="marca" href="/favoritos">Manga<span>Kindle</span></a>
+    <nav aria-label="Seções">
+      {% for endereco, nome in [("/favoritos", "Favoritos"), ("/buscar", "Buscar"), ("/extensoes", "Extensões"), ("/envios", "Envios")] %}
+      <a href="{{ endereco }}" {% if request.url.path.startswith(endereco) %}aria-current="page"{% endif %}>{{ nome }}</a>
+      {% endfor %}
+    </nav>
+    {% if is_login_enabled(request) %}
+    <form class="inline" method="post" action="/logout">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button>Sair</button>
+    </form>
+    <form class="inline" method="post" action="/sessoes/encerrar-todas">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button>Encerrar todas as sessões</button>
+    </form>
+    {% endif %}
+  </header>
+  {% endif %}
+  <main>{% block conteudo %}{% endblock %}</main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

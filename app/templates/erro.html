@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>{{ titulo or "Algo deu errado" }}</h1>
+{% if not titulo %}<p>O Suwayomi respondeu com erro. A fonte pode estar fora do ar ou ter mudado.</p>{% endif %}
+<p class="erro">{{ mensagem }}</p>
+<p><a href="/">Voltar</a></p>
+{% endblock %}

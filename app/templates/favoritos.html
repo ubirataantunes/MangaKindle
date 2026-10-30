@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}Favoritos · MangaKindle{% endblock %}
+{% block conteudo %}
+<h1>Favoritos</h1>
+{% if favoritos %}
+<div class="grade">
+  {% for favorito in favoritos %}
+  <a href="/manga/{{ favorito.manga_id }}">
+    {% if favorito.thumbnail_url %}<img src="/imagem?caminho={{ favorito.thumbnail_url | urlencode }}" alt="" loading="lazy">{% endif %}
+    <div>{{ favorito.title }}</div>
+    <div class="fraco">{{ favorito.source_name }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="fraco">Nenhum favorito ainda. Abra um mangá em <a href="/buscar">Buscar</a> e toque em ☆ Favoritar.</p>
+{% endif %}
+{% endblock %}

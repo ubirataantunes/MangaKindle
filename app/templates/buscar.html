@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Buscar · MangaKindle{% endblock %}
+{% block conteudo %}
+<h1>Buscar mangás</h1>
+{% if not fontes %}
+<p class="fraco">Nenhuma fonte instalada. Instale uma extensão em <a href="/extensoes">Extensões</a>.</p>
+{% else %}
+<form class="linha" method="get" action="/buscar">
+  <select name="fonte" required>
+    <option value="">Escolha a fonte</option>
+    {% for item in fontes %}
+    <option value="{{ item.id }}" {% if item.id == fonte %}selected{% endif %}>{{ item.display_name }}</option>
+    {% endfor %}
+  </select>
+  <input type="search" name="texto" value="{{ texto }}" placeholder="Título (vazio = populares)" maxlength="200" class="campo-busca">
+  <button class="principal">Buscar</button>
+</form>
+
+{% if fonte %}
+  {% if mangas %}
+  <div class="grade">
+    {% for manga in mangas %}
+    <a href="/manga/{{ manga.id }}">
+      {% if manga.thumbnail_url %}<img src="/imagem?caminho={{ manga.thumbnail_url | urlencode }}" alt="" loading="lazy">{% endif %}
+      <div>{{ manga.title }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  <p>
+    {% if pagina > 1 %}<a href="/buscar?fonte={{ fonte }}&texto={{ texto | urlencode }}&pagina={{ pagina - 1 }}">← Anterior</a>{% endif %}
+    {% if tem_proxima_pagina %}<a href="/buscar?fonte={{ fonte }}&texto={{ texto | urlencode }}&pagina={{ pagina + 1 }}" class="link-proxima">Próxima →</a>{% endif %}
+  </p>
+  {% else %}
+  <p class="fraco">Nenhum resultado.</p>
+  {% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

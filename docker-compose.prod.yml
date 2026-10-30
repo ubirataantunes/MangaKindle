@@ -1,0 +1,49 @@
+# Override de produção. Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  suwayomi:
+    ports: !reset []
+    networks:
+      - interna
+
+  mangakindle:
+    ports: !reset []
+    environment:
+      SECURE_COOKIES: "true"
+      LOGIN_ENABLED: "true"
+      # O cloudflared tem IP fixo na rede interna. Só ele pode informar o IP real via CF-Connecting-IP.
+      TRUSTED_PROXY_IPS: 172.30.0.2
+    networks:
+      - interna
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.9.3
+    container_name: mangakindle-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Defina TUNNEL_TOKEN no .env}
+      TUNNEL_METRICS: 127.0.0.1:20241
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:20241", "ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      mangakindle:
+        condition: service_healthy
+    networks:
+      interna:
+        ipv4_address: 172.30.0.2
+    restart: unless-stopped
+
+networks:
+  interna:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

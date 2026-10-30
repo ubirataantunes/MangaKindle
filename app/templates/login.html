@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>MangaKindle</h1>
+<form class="linha" method="post" action="/login">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="password" name="senha" placeholder="Senha" maxlength="200" autofocus required>
+  <button class="principal">Entrar</button>
+</form>
+{% if erro %}<p class="erro">{{ erro }}</p>{% endif %}
+{% endblock %}

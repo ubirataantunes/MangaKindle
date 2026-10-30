@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Envios · MangaKindle{% endblock %}
+{% block cabecalho_extra %}{% if atualizar_sozinho %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
+{% block conteudo %}
+<h1>Envios</h1>
+<p class="fraco {{ 'erro' if emails_no_ultimo_dia >= limite_emails_por_dia }}">
+  E-mails enviados nas últimas 24 horas: {{ emails_no_ultimo_dia }} de {{ limite_emails_por_dia }} (limite do Gmail)
+</p>
+{% if envios %}
+<ul class="lista">
+  {% for envio in envios %}
+  <li>
+    <span class="cresce">
+      <a href="/manga/{{ envio.manga_id }}">[{{ envio.source_name }}] {{ envio.manga_title }}</a>
+      <span class="fraco">· {{ envio.chapter_ids | length }} capítulo(s) · {{ envio.created_at.replace("T", " ") }}</span>
+      {% if envio.status == 'processando' and envio.progress %}<br><span class="fraco">{{ envio.progress }}</span>{% endif %}
+      {% if envio.error_message %}<br><span class="erro">{{ envio.error_message }}</span>{% endif %}
+    </span>
+    <span class="etiqueta {{ 'sucesso' if envio.status == 'enviado' else 'erro' if envio.status == 'erro' else 'processando' if envio.status == 'processando' else '' }}">{{ envio.status }}</span>
+    {% if envio.status == 'erro' %}
+    <form class="inline" method="post" action="/envios/{{ envio.id }}/tentar-novamente">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button>Tentar de novo</button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="fraco">Nenhum envio ainda. Escolha um mangá em <a href="/buscar">Buscar</a>.</p>
+{% endif %}
+{% endblock %}

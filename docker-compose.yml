@@ -1,0 +1,57 @@
+services:
+  suwayomi:
+    image: ghcr.io/suwayomi/suwayomi-server:v2.4.2366
+    container_name: mangakindle-suwayomi
+    environment:
+      TZ: America/Sao_Paulo
+      WEB_UI_ENABLED: "false"
+    volumes:
+      # A ordem importa: o Suwayomi exige que a pasta de downloads venha primeiro.
+      - ./data/downloads:/home/suwayomi/.local/share/Tachidesk/downloads
+      - ./data/suwayomi:/home/suwayomi/.local/share/Tachidesk
+    ports:
+      # Exposto só no localhost, para depuração. O app acessa pela rede interna do compose.
+      - "127.0.0.1:4567:4567"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1:4567/api/v1/settings/about"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+
+  mangakindle:
+    build: ./app
+    container_name: mangakindle-app
+    env_file: .env
+    environment:
+      TZ: America/Sao_Paulo
+      SUWAYOMI_URL: http://suwayomi:4567
+      DATA_DIRECTORY: /data
+      # Só para desenvolvimento local em http://localhost. Em produção o cookie é sempre seguro.
+      SECURE_COOKIES: "false"
+      # Sem senha no uso local. Só é aceito com SECURE_COOKIES=false; o docker-compose.prod.yml religa o login.
+      LOGIN_ENABLED: "false"
+    volumes:
+      - ./data/app:/data
+    # O app só grava em /data (volume) e em /tmp (arquivos temporários do KCC).
+    read_only: true
+    tmpfs:
+      - /tmp:size=1g
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      # Só no próprio computador. Para acessar pelo celular em casa, troque por "8000:8000" sabendo que fica aberto na rede local.
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/login', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      suwayomi:
+        condition: service_healthy
+    restart: unless-stopped

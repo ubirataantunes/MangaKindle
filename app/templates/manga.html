@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block titulo %}{{ manga.title }} · MangaKindle{% endblock %}
+{% block conteudo %}
+<div class="cabecalho-manga">
+  {% if manga.thumbnail_url %}
+  <img src="/imagem?caminho={{ manga.thumbnail_url | urlencode }}" alt="" class="capa-manga">
+  {% endif %}
+  <div class="detalhes-manga">
+    <h1>{{ manga.title }}</h1>
+    <p class="fraco">{{ manga.source_name }}{% if manga.author %} · {{ manga.author }}{% endif %}</p>
+    {% if manga.description %}<p>{{ manga.description | truncate(400) }}</p>{% endif %}
+    <form method="post" action="/manga/{{ manga.id }}/{{ 'desfavoritar' if favorito else 'favoritar' }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      {% if favorito %}
+      <button>★ Nos favoritos (remover)</button>
+      {% else %}
+      <button>☆ Favoritar</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<p class="fraco resumo-capitulos">
+  {{ manga.chapters | length }} capítulos · {{ enviados | length }} enviados · {{ lidos | length }} lidos
+  {% if na_fila %}· <span class="etiqueta na-fila">{{ na_fila | length }} na fila</span> <a href="/envios">ver envios</a>{% endif %}
+</p>
+
+<form method="post" action="/manga/{{ manga.id }}/enviar" id="formulario-envio">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+
+  {# Os controles de faixa só aparecem com JavaScript; sem ele a lista inteira fica visível. #}
+  <div class="linha controles-faixa" hidden>
+    <label>Mostrar
+      <select id="tamanho-faixa">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="todos">Todos</option>
+      </select>
+    </label>
+    <button type="button" id="faixa-anterior" aria-label="Faixa anterior">←</button>
+    <select id="faixa" aria-label="Faixa de capítulos"></select>
+    <button type="button" id="faixa-proxima" aria-label="Próxima faixa">→</button>
+  </div>
+
+  <div class="linha">
+    <button type="button" data-selecao="faixa">Marcar não enviados desta faixa</button>
+    <button type="button" data-selecao="todos">Marcar todos não enviados</button>
+    <button type="button" data-selecao="nenhum">Limpar seleção</button>
+  </div>
+  {% if enviados %}
+  <label class="linha opcao-reenvio" hidden>
+    <input type="checkbox" name="reenviar" value="true" id="permitir-reenvio">
+    Permitir reenviar capítulos já enviados (ex.: se você apagou do Kindle)
+  </label>
+  {% endif %}
+
+  <ul class="lista lista-capitulos">
+    {% for capitulo in manga.chapters %}
+    {% set foi_enviado = capitulo.id in enviados %}
+    {% set esta_na_fila = capitulo.id in na_fila %}
+    {% set foi_lido = capitulo.id in lidos %}
+    <li class="capitulo{% if foi_lido %} lido{% endif %}" data-numero="{{ capitulo.chapter_number | numero_capitulo }}"
+        data-estado="{{ 'enviado' if foi_enviado else 'na-fila' if esta_na_fila else 'disponivel' }}">
+      <input type="checkbox" name="capitulos" value="{{ capitulo.id }}" id="capitulo-{{ capitulo.id }}"
+             {% if foi_enviado or esta_na_fila %}disabled{% endif %}>
+      <label for="capitulo-{{ capitulo.id }}" class="nome-capitulo">
+        <span class="numero-capitulo">{{ capitulo.chapter_number | numero_capitulo }}</span>
+        <span class="titulo-capitulo">
+          {{ capitulo.name }}
+          {% if capitulo.scanlator %}<span class="fraco">· {{ capitulo.scanlator }}</span>{% endif %}
+        </span>
+      </label>
+      <span class="acoes-capitulo">
+      {% if foi_enviado %}<span class="etiqueta sucesso">enviado</span>{% endif %}
+      {% if esta_na_fila %}<span class="etiqueta na-fila">na fila</span>{% endif %}
+      {# Botões dentro do formulário de envio: o formaction troca o destino e reaproveita o token CSRF. #}
+      {% if foi_lido %}
+      <button class="botao-pequeno marcado" formaction="/manga/{{ manga.id }}/nao-lido" name="capitulo" value="{{ capitulo.id }}"
+              title="Desmarcar como lido">✓ Lido</button>
+      {% else %}
+      <button class="botao-pequeno" formaction="/manga/{{ manga.id }}/lido" name="capitulo" value="{{ capitulo.id }}">Lido</button>
+      <button class="botao-pequeno" formaction="/manga/{{ manga.id }}/lido-ate-aqui" name="capitulo" value="{{ capitulo.id }}"
+              title="Marcar este e todos os anteriores como lidos">Até aqui</button>
+      {% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div class="barra-envio">
+    <span id="contador-selecionados" class="fraco">Nenhum capítulo selecionado</span>
+    <button class="principal" id="botao-enviar">Enviar pro Kindle</button>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script src="/static/manga.js" defer></script>{% endblock %}

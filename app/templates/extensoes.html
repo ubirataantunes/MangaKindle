@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block titulo %}Extensões · MangaKindle{% endblock %}
+{% block conteudo %}
+<h1>Extensões</h1>
+
+<h2>Repositórios</h2>
+{% if repositorios %}
+<ul class="lista">
+  {% for url in repositorios %}
+  <li>
+    <span class="cresce">{{ url }}</span>
+    <form class="inline" method="post" action="/extensoes/repositorios/remover">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="url" value="{{ url }}"><button>Remover</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="fraco">
+  Nenhum repositório cadastrado. Cole abaixo o link do índice do repositório que você usa no Mihon
+  (termina em <code>.json</code> ou <code>.pb</code>). Um que funciona bem com fontes em português:
+  <code>https://raw.githubusercontent.com/FelipeGFA/extensoes/refs/heads/repo/index.pb</code>
+</p>
+{% endif %}
+<form class="linha espaco-acima" method="post" action="/extensoes/repositorios">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <input type="url" name="url" placeholder="https://.../index.pb" required maxlength="500" pattern="https://\S+\.(json|pb)" class="campo-largo">
+  <button class="principal">Adicionar repositório</button>
+</form>
+
+<h2>Extensões disponíveis</h2>
+<form class="linha" method="get" action="/extensoes">
+  <input type="search" name="filtro" value="{{ filtro }}" placeholder="Filtrar por nome" maxlength="100">
+  <select name="idioma">
+    <option value="">Todos os idiomas</option>
+    {% for codigo in idiomas %}<option value="{{ codigo }}" {% if codigo == idioma %}selected{% endif %}>{{ codigo }}</option>{% endfor %}
+  </select>
+  <label><input type="checkbox" name="somente_instaladas" value="true" {% if somente_instaladas %}checked{% endif %}> Só instaladas</label>
+  <button>Filtrar</button>
+</form>
+<form class="linha" method="post" action="/extensoes/atualizar-lista">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button>Atualizar lista dos repositórios</button>
+</form>
+
+{% if extensoes %}
+<ul class="lista">
+  {% for extensao in extensoes %}
+  <li>
+    <img class="icone" src="/imagem?caminho={{ extensao.icon_url | urlencode }}" alt="" loading="lazy">
+    <span class="cresce">
+      {{ extensao.name }}
+      <span class="fraco">· {{ extensao.language }} · v{{ extensao.version }}</span>
+      {% if extensao.is_nsfw %}<span class="etiqueta">+18</span>{% endif %}
+    </span>
+    {% if extensao.is_installed %}
+      {% if extensao.has_update %}
+      <form class="inline" method="post" action="/extensoes/{{ extensao.package_name }}/atualizar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button class="principal">Atualizar</button>
+      </form>
+      {% endif %}
+      <form class="inline" method="post" action="/extensoes/{{ extensao.package_name }}/remover">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button>Desinstalar</button>
+      </form>
+    {% else %}
+      <form class="inline" method="post" action="/extensoes/{{ extensao.package_name }}/instalar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}"><button>Instalar</button>
+      </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="fraco">Nenhuma extensão encontrada.</p>
+{% endif %}
+{% endblock %}

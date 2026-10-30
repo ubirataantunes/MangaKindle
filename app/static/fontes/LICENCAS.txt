@@ -1,0 +1,7 @@
+Fontes incluídas no app, todas sob a SIL Open Font License 1.1 (https://openfontlicense.org):
+
+- Dela Gothic One (c) The Dela Gothic Project Authors
+- Atkinson Hyperlegible (c) Braille Institute of America
+- IBM Plex Mono (c) IBM Corp.
+
+Arquivos obtidos do Fontsource (https://fontsource.org), subconjunto latin.
