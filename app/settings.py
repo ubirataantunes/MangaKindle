@@ -41,7 +41,10 @@ def _password_hash(login_enabled: bool) -> str:
             "APP_PASSWORD não é mais aceita. Gere o hash com 'python password_hash.py' "
             "e defina APP_PASSWORD_HASH (veja o README)."
         )
-    raise RuntimeError("A variável de ambiente APP_PASSWORD_HASH é obrigatória. Gere com 'python password_hash.py'.")
+    raise RuntimeError(
+        "Com LOGIN_ENABLED=true, a variável APP_PASSWORD_HASH é obrigatória. "
+        "Gere com 'python password_hash.py' (veja \"Ligar a senha\" no README) ou use LOGIN_ENABLED=false."
+    )
 
 
 def _secure_cookies() -> bool:

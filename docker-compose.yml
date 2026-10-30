@@ -30,8 +30,8 @@ services:
       DATA_DIRECTORY: /data
       # Só para desenvolvimento local em http://localhost. Em produção o cookie é sempre seguro.
       SECURE_COOKIES: "false"
-      # Sem senha no uso local. Só é aceito com SECURE_COOKIES=false; o docker-compose.prod.yml religa o login.
-      LOGIN_ENABLED: "false"
+      # Liga ou desliga a senha pelo .env (padrão: desligada, para quem só roda no próprio PC).
+      LOGIN_ENABLED: ${LOGIN_ENABLED:-false}
     volumes:
       - ./data/app:/data
     # O app só grava em /data (volume) e em /tmp (arquivos temporários do KCC).
